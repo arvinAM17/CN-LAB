@@ -2,7 +2,7 @@ import socket
 import threading
 from wsgiref.handlers import format_date_time
 from datetime import datetime
-import time
+from time import mktime, sleep
 
 HOST = 'localhost'
 PORT = 8080
@@ -72,7 +72,7 @@ class Client():
                     self.handle_client_info(data)
                     if data['body'] == 'RECV':
                         self.sending_state = data['body']
-                elif data['body'] = 'NEXIST':
+                elif data['body'] == 'NEXIST':
                     self.sending_state = data['body']
             elif data['type'] == 'MSSG':
                 self.handle_message(data)
@@ -87,7 +87,7 @@ class Client():
         self.sock.close()
     
     def send_message(self, _id, text):
-        time = format_date_time(time.mktime(datetime.now().timetuple()))
+        time = format_date_time(mktime(datetime.now().timetuple()))
         message = {'sender': self.id, 'status': 'SEND', 'body': text, 'time': time}
         self.lock.acquire()
         if _id not in self.chats:
@@ -96,7 +96,7 @@ class Client():
         self.lock.release()
         data = {'type':'MSSG', 'sender': self.id, 'body': text, 'receiver': _id}
         self.send(data)
-        time.sleep(1)
+        sleep(1)
         state = self.sending_state
         self.sending_state = 'NSEND'
         return state
