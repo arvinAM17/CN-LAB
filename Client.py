@@ -1,5 +1,8 @@
 import socket
 import threading
+from wsgiref.handlers import format_date_time
+from datetime import datetime
+import time
 
 HOST = 'localhost'
 PORT = 8080
@@ -11,6 +14,7 @@ class Client():
         self.sock = socket.socket()                     
         self.sock.connect(ADDR)
         self.id = None
+        self.sending_state = 'NSEND' 
         self.chats = dict()
         self.lock = threading.Lock()
         self.sending_lock = threading.Lock()
@@ -29,7 +33,7 @@ class Client():
             data = self.sock.recv(BUFSIZE)
             if data: 
                 break
-        data = str(data, 'utf-8')
+        data = str(data, 'utf-8')[:-3]
         data = eval(data)
         return data['body']
     
@@ -66,6 +70,10 @@ class Client():
             if data['type'] == 'INFO':
                 if data['sender'] != '_Server':
                     self.handle_client_info(data)
+                    if data['body'] == 'RECV':
+                        self.sending_state = data['body']
+                elif data['body'] = 'NEXIST':
+                    self.sending_state = data['body']
             elif data['type'] == 'MSSG':
                 self.handle_message(data)
 
@@ -79,7 +87,8 @@ class Client():
         self.sock.close()
     
     def send_message(self, _id, text):
-        message = {'sender': self.id, 'status': 'SEND', 'body': text}
+        time = format_date_time(time.mktime(datetime.now().timetuple()))
+        message = {'sender': self.id, 'status': 'SEND', 'body': text, 'time': time}
         self.lock.acquire()
         if _id not in self.chats:
             self.chats[_id] = {'messages': [], 'new': 0}
@@ -87,6 +96,10 @@ class Client():
         self.lock.release()
         data = {'type':'MSSG', 'sender': self.id, 'body': text, 'receiver': _id}
         self.send(data)
+        time.sleep(1)
+        state = self.sending_state
+        self.sending_state = 'NSEND'
+        return state
     
     def seen(self, _id):
         self.lock.acquire()
@@ -103,15 +116,5 @@ class Client():
     def start(self):
         thread = threading.Thread(target=self.receive, args=())
         thread.start()
-
-if __name__=='__main__':
-    c = Client()
-    c.login(input('id: '))
-    c.start()
-    while True:
-        cmd = input('msg: ')
-        cmd = cmd.split()
-        c.send_message(cmd[0], cmd[1])
-        c.seen(cmd[0])
 
     

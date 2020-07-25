@@ -42,9 +42,7 @@ class Client(threading.Thread):
         return True
     
     def handle_data(self, raw_data):
-        print(raw_data)
         splitted_data = raw_data.split('$$$')[:-1]
-        print(splitted_data)
         for data in splitted_data:
             data = eval(data)
             _id = data['sender']
