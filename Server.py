@@ -17,9 +17,9 @@ class Client(threading.Thread):
         self.sending_lock = threading.Lock()
 
     def add_member(self, _id):
-        LOCK.acquire()
+        Client.LOCK.acquire()
         Client.MEMBERS[id] = self
-        LOCK.release()
+        Client.LOCK.release()
     
     def send(self, data):
         self.sending_lock.acquire()
@@ -27,21 +27,21 @@ class Client(threading.Thread):
         self.sending_lock.release()
 
     def send_from_server(self, body, rcv_id):
-        message = {'type': 'INFO', 'id': '_Server', 'reciever': rcv_id}
+        message = {'type': 'INFO', 'id': '_Server', 'receiver': rcv_id}
         message['body'] = body
         self.send(str(message))
     
     def forward_message(self, data):
-        _id = data['reciever']
+        _id = data['receiver']
         if _id not in Client.MEMBERS:
             return False
         client = Client.MEMBERS[_id]
         client.send(str(data))
         return True
     
-    def handle_msg(self, raw_data):
+    def handle_data(self, raw_data):
         data = eval(raw_data)
-        _id = message['id']
+        _id = data['id']
         if data['type'] == 'LOGIN':
             if _id[0] == '_':
                 self.send_from_server('NVALID', _id)
@@ -59,7 +59,7 @@ class Client(threading.Thread):
             if not data: 
                 continue
             data = str(data, 'utf-8')
-            self.handle_msg(data)
+            self.handle_data(data)
         self.sock.close()
 
 if __name__=='__main__':

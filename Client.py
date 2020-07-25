@@ -20,9 +20,9 @@ class Client():
         self.sock.send(bytearray(data, 'utf-8'))
         self.lock.release()
     
-    def loggin(self, _id):
+    def login(self, _id):
         self.id = _id
-        message = {'type': 'LOGIN', 'id': self.id, 'reciever': '_Server'}
+        message = {'type': 'LOGIN', 'id': self.id, 'receiver': '_Server'}
         data = bytearray(str(message), 'utf-8')
         self.sock.send(data)
         while True:
@@ -59,7 +59,7 @@ class Client():
         elif data['type'] == 'MSSG':
             self.handle_message(data)
 
-    def recieve(self):
+    def receive(self):
         while True:
             data = self.sock.recv(BUFSIZE)
             if not data:
@@ -67,8 +67,12 @@ class Client():
             data = str(data, 'utf-8')
             self.handle_data(data)
         self.sock.close()
+    
+    def send_message(self, _id, text):
+        pass
         
     def start(self):
+        pass
 
 if __name__=='__main__':
     
