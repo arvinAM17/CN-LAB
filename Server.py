@@ -18,16 +18,18 @@ class Client(threading.Thread):
 
     def add_member(self, _id):
         Client.LOCK.acquire()
-        Client.MEMBERS[id] = self
+        Client.MEMBERS[_id] = self
         Client.LOCK.release()
     
     def send(self, data):
+        print(data)
+        send_data = data + '$$$'
         self.sending_lock.acquire()
-        self.sock.send(bytearray(data, 'utf-8'))
+        self.sock.send(bytearray(send_data, 'utf-8'))
         self.sending_lock.release()
 
     def send_from_server(self, body, rcv_id):
-        message = {'type': 'INFO', 'id': '_Server', 'receiver': rcv_id}
+        message = {'type': 'INFO', 'sender': '_Server', 'receiver': rcv_id}
         message['body'] = body
         self.send(str(message))
     
@@ -40,18 +42,22 @@ class Client(threading.Thread):
         return True
     
     def handle_data(self, raw_data):
-        data = eval(raw_data)
-        _id = data['id']
-        if data['type'] == 'LOGIN':
-            if _id[0] == '_':
-                self.send_from_server('NVALID', _id)
-            else:
-                self.add_member(_id)
-                self.send_from_server('SUCC', _id)
-        elif data['type'] == 'MESSAGE':
-            res = self.forward_message(data)
-            if not res:
-                self.send_from_server('NEXIST', _id)
+        print(raw_data)
+        splitted_data = raw_data.split('$$$')[:-1]
+        print(splitted_data)
+        for data in splitted_data:
+            data = eval(data)
+            _id = data['sender']
+            if data['type'] == 'LOGIN':
+                if _id[0] == '_':
+                    self.send_from_server('NVALID', _id)
+                else:
+                    self.add_member(_id)
+                    self.send_from_server('SUCC', _id)
+            elif data['type'] == 'MSSG':
+                res = self.forward_message(data)
+                if not res:
+                    self.send_from_server('NEXIST', _id)
 
     def run(self):
         while True:
