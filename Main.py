@@ -14,7 +14,7 @@ def CLI():
     while True:
         if state == LOGIN:
             print('-- Hello!')
-            id = int(input('-- Please enter your id: '))
+            id = input('-- Please enter your id: ')
             if id in clients:
                 current_client = clients[id]
             else:
@@ -28,15 +28,16 @@ def CLI():
             print('-- chats: view your chats')
             print('-- send: send a message to a chat id')
             print('-- logout: exit this user')
+            print('-- exit: exit the program')
             command = input()
             if command == 'chats':
                 state = CHATS
             elif command == 'send':
-                id = int(input('Please enter the receiving id: '))
+                id = input('Please enter the receiving id: ')
                 message = input('Please enter the message: ')
                 ans = current_client.send_message(id, message)
                 if ans == 'RECV':
-                    print('Message successfully sent to ' + str(id))
+                    print('Message successfully sent to ' + id)
                 elif ans == 'NEXIST':
                     print('Could not send the message: id not found')
                 elif ans == 'NSEND':
@@ -46,6 +47,8 @@ def CLI():
             elif command == 'logout':
                 current_client = None
                 state = LOGIN
+            elif command == 'exit':
+                exit()
             else:
                 print('unrecognized command, please enter again')
 
@@ -53,12 +56,12 @@ def CLI():
             current_chats = copy.deepcopy(current_client.chats)
             for id in current_chats:
                 num = current_chats[id]['new']
-                print('- chat ' + str(id), '(' + str(num) + ')')
+                print('- chat ' + id, '(' + str(num) + ')')
             print('-- see: see the messages of a chat')
             print('-- back: go back to the previous menu')
             command = input()
             if command == 'see':
-                id = int(input('please enter the chat id'))
+                id = input('please enter the chat id')
                 messages = current_chats[id]['messages']
                 current_client.seen(id)
                 for message in messages:
@@ -71,7 +74,7 @@ def CLI():
                         log += message_body
                         log += 'seen' if message_state == 'SEEN' else 'sent'
                     else:
-                        log += str(message_id) + ': '
+                        log += message_id + ': '
                         log += message_body
                     log += ' ' + message['time']
                     print(log)
