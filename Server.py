@@ -3,13 +3,14 @@ import threading
 
 HOST = 'localhost'
 PORT = 8080
-ADDR = (HOST,PORT)
+ADDR = (HOST, PORT)
 BUFSIZE = 4096
+
 
 class Client(threading.Thread):
     MEMBERS = dict()
     LOCK = threading.Lock()
-    
+
     def __init__(self, sock, addr):
         threading.Thread.__init__(self)
         self.addr = addr
@@ -20,7 +21,7 @@ class Client(threading.Thread):
         Client.LOCK.acquire()
         Client.MEMBERS[_id] = self
         Client.LOCK.release()
-    
+
     def send(self, data):
         print(data)
         send_data = data + '$$$'
@@ -32,7 +33,7 @@ class Client(threading.Thread):
         message = {'type': 'INFO', 'sender': '_Server', 'receiver': rcv_id}
         message['body'] = body
         self.send(str(message))
-    
+
     def forward_message(self, data):
         _id = data['receiver']
         if _id not in Client.MEMBERS:
@@ -40,7 +41,7 @@ class Client(threading.Thread):
         client = Client.MEMBERS[_id]
         client.send(str(data))
         return True
-    
+
     def handle_data(self, raw_data):
         splitted_data = raw_data.split('$$$')[:-1]
         for data in splitted_data:
@@ -60,13 +61,14 @@ class Client(threading.Thread):
     def run(self):
         while True:
             data = self.sock.recv(BUFSIZE)
-            if not data: 
+            if not data:
                 continue
             data = str(data, 'utf-8')
             self.handle_data(data)
         self.sock.close()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serv.bind(ADDR)
     serv.listen()
