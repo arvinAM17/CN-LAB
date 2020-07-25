@@ -65,7 +65,7 @@ def CLI():
                 messages = current_chats[id]['messages']
                 current_client.seen(id)
                 for message in messages:
-                    message_id = message['id']
+                    message_id = message['sender']
                     message_state = message['status']
                     message_body = message['body']
                     log = ''
